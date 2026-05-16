@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HO1Y SINNER — RESTRICTED</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void:           #040304;
+    --void2:          #080508;
+    --void3:          #0d0a0e;
+    --blood:          #2a0000;
+    --maroon:         #560a14;
+    --crimson:        #8B0000;
+    --flicker:        #a01020;
+    --text:           #d2c4c7;       /* ↑ brighter */
+    --text-dim:       #9a8a8d;       /* ↑ much brighter */
+    --text-ghost:     #3e2e32;
+    --line:           rgba(86,10,20,0.35);
+    --line-faint:     rgba(86,10,20,0.14);
+    --mono:           'Share Tech Mono', monospace;
+    --display:        'Bebas Neue', cursive;
+    --body:           'Rajdhani', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--void);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 17px;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* GRAIN */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.055; mix-blend-mode: overlay;
+  }
+
+  /* SCANLINES */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px
+    );
+  }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--void); }
+  ::-webkit-scrollbar-thumb { background: var(--maroon); }
+
+  /* GRID BG */
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--line-faint) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-faint) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 75%);
+  }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(4,3,4,0.94);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0;
+    transition: border-color .3s;
+  }
+  nav.scrolled { border-bottom-color: var(--maroon); }
+  .nav-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 720px; margin: 0 auto; padding: 0 24px;
+  }
+  .nav-brand {
+    font-family: var(--mono); font-size: 0.7rem;
+    letter-spacing: 6px; color: var(--crimson);
+    text-decoration: none; text-transform: uppercase;
+  }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    font-family: var(--mono); font-size: 0.58rem;
+    color: var(--text-dim); text-decoration: none;
+    letter-spacing: 3px; text-transform: uppercase;
+    transition: color .2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 1px; background: var(--crimson);
+    transform: scaleX(0); transition: transform .2s;
+  }
+  .nav-links a:hover { color: var(--flicker); }
+  .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+  .nav-links a.active { color: var(--flicker); }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+
+  .nav-status {
+    font-family: var(--mono); font-size: 0.55rem;
+    color: var(--text-dim); letter-spacing: 2px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .status-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--maroon);
+    animation: pulse 3s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.2} 50%{opacity:.9} }
+
+  /* Hamburger */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column; gap: 5px;
+    cursor: pointer; padding: 4px; background: none; border: none;
+  }
+  .nav-hamburger span {
+    display: block; width: 22px; height: 1px;
+    background: var(--text-dim); transition: all .25s;
+  }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); background: var(--crimson); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); background: var(--crimson); }
+
+  /* Mobile drawer */
+  .nav-drawer {
+    display: none;
+    position: fixed; top: 49px; left: 0; right: 0;
+    background: rgba(4,3,4,0.97);
+    border-bottom: 1px solid var(--line);
+    z-index: 999;
+    overflow: hidden;
+    max-height: 0; transition: max-height .3s ease, opacity .3s ease;
+    opacity: 0;
+  }
+  .nav-drawer.open { max-height: 300px; opacity: 1; }
+  .nav-drawer a {
+    display: block; font-family: var(--mono); font-size: 0.7rem;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: var(--text-dim); text-decoration: none;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--line-faint);
+    transition: color .2s, padding-left .2s;
+  }
+  .nav-drawer a:hover, .nav-drawer a.active { color: var(--flicker); padding-left: 32px; }
+  .nav-drawer a::before { content: '// '; color: var(--maroon); opacity: 0.6; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 120px 20px 80px;
+    position: relative;
+  }
+
+  .hero-restriction {
+    font-family: var(--mono); font-size: 0.58rem;
+    letter-spacing: 10px; color: var(--text-dim);
+    margin-bottom: 60px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 8px 20px;
+    animation: fadeInUp .5s ease both;
+    position: relative;
+  }
+  .hero-restriction::before { content: '▍'; color: var(--maroon); margin-right: 8px; }
+  .hero-restriction::after  { content: '▍'; color: var(--maroon); margin-left: 8px; }
+
+  .sigil {
+    width: 80px; height: 80px;
+    margin-bottom: 40px;
+    position: relative;
+    animation: fadeInUp .65s ease both;
+  }
+  .sigil svg {
+    width: 100%; height: 100%;
+    opacity: 0.5;
+    filter: drop-shadow(0 0 12px rgba(139,0,0,0.5));
+  }
+  .sigil-ring {
+    position: absolute; inset: -12px;
+    border: 1px solid rgba(86,10,20,0.4);
+    border-radius: 50%;
+    animation: spin 20s linear infinite;
+  }
+  .sigil-ring2 {
+    position: absolute; inset: -22px;
+    border: 1px dashed rgba(86,10,20,0.2);
+    border-radius: 50%;
+    animation: spin 35s linear infinite reverse;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hero-callsign {
+    font-family: var(--display);
+    font-size: clamp(3.5rem, 11vw, 7rem);
+    letter-spacing: 10px; line-height: 1;
+    color: #fff;
+    text-shadow:
+      0 0 60px rgba(139,0,0,0.3),
+      0 0 2px rgba(139,0,0,0.6);
+    animation: fadeInUp .8s ease both;
+    margin-bottom: 6px;
+  }
+  .hero-callsign span { color: var(--crimson); }
+
+  .hero-sub {
+    font-family: var(--mono); font-size: 0.62rem;
+    letter-spacing: 4px; color: var(--text-dim);
+    margin-bottom: 48px;
+    animation: fadeInUp .9s ease both;
+  }
+
+  .lore-block {
+    max-width: 520px; text-align: left;
+    border-left: 2px solid var(--maroon);
+    padding: 18px 22px;
+    margin-bottom: 40px;
+    animation: fadeInUp 1s ease both;
+    position: relative;
+  }
+  .lore-block::before {
+    content: 'ЗАПИСЬ ПЕРЕХВАЧЕНА';
+    font-family: var(--mono); font-size: 0.5rem;
+    letter-spacing: 4px; color: var(--maroon);
+    display: block; margin-bottom: 12px;
+  }
+  .lore-block p {
+    font-family: var(--body); font-size: 1.08rem; font-weight: 400;
+    color: var(--text);                  /* ↑ brighter than before */
+    line-height: 1.9;
+  }
+  .lore-block p + p { margin-top: 12px; }
+
+  .typewriter {
+    font-family: var(--mono); font-size: 0.78rem;
+    color: var(--flicker); letter-spacing: 2px;
+    height: 20px; margin-bottom: 52px;
+    animation: fadeInUp 1.1s ease both;
+  }
+  .tw-cursor { animation: blink .8s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .corner {
+    position: absolute; width: 18px; height: 18px;
+    border-color: var(--maroon); border-style: solid; opacity: 0.5;
+  }
+  .corner-tl { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 24px; right: 24px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 24px; left: 24px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
+
+  .scroll-hint {
+    position: absolute; bottom: 44px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: fadeInUp 1.5s ease both;
+  }
+  .scroll-hint span { font-family: var(--mono); font-size: 0.5rem; letter-spacing: 3px; color: var(--text-ghost); }
+  .scroll-arrow { color: var(--maroon); font-size: 0.7rem; animation: bounce 2.5s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── SECTIONS ── */
+  section { padding: 80px 0; }
+  .section-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 48px;
+  }
+  .section-num {
+    font-family: var(--mono); font-size: 0.6rem;
+    color: var(--maroon); letter-spacing: 3px;
+  }
+  .section-title {
+    font-family: var(--display); font-size: 2.1rem;
+    letter-spacing: 5px; color: rgba(255,255,255,0.92); /* ↑ brighter */
+  }
+  .section-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(to right, var(--maroon), transparent);
+  }
+
+  /* ── ДОСЬЕ ── */
+  .dossier-block {
+    display: flex; flex-direction: column; gap: 1px;
+    background: var(--line-faint);
+    border: 1px solid var(--line);
+  }
+  .dossier-row {
+    display: grid; grid-template-columns: 180px 1fr;
+    background: var(--void2); transition: background .25s;
+  }
+  .dossier-row:hover { background: var(--void3); }
+  .dossier-key {
+    font-family: var(--mono); font-size: 0.6rem;
+    letter-spacing: 3px; color: var(--maroon);
+    text-transform: uppercase; padding: 16px 20px;
+    border-right: 1px solid var(--line);
+    display: flex; align-items: center;
+  }
+  .dossier-val {
+    font-family: var(--body); font-size: 1rem; font-weight: 400; /* ↑ weight */
+    color: var(--text);                 /* ↑ brighter */
+    padding: 16px 20px; line-height: 1.7;
+  }
+  .dossier-val.redacted {
+    color: var(--text-ghost);
+    position: relative; letter-spacing: 1px;
+  }
+  .dossier-val.redacted::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      90deg, rgba(86,10,20,0.08) 0, rgba(86,10,20,0.08) 8px, transparent 8px, transparent 10px
+    );
+    pointer-events: none;
+  }
+  .dossier-val em { color: var(--text-dim); font-style: normal; }
+
+  /* divider */
+  .divider {
+    display: flex; align-items: center; gap: 12px; margin: 52px 0; opacity: 0.4;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .divider span { font-family: var(--mono); font-size: 0.6rem; color: var(--flicker); letter-spacing: 3px; }
+
+  /* ── ХРОНИКА ── */
+  .chronicle { display: flex; flex-direction: column; gap: 1px; background: var(--line-faint); }
+  .chronicle-entry {
+    background: var(--void2); padding: 24px;
+    display: grid; grid-template-columns: 90px 1fr;
+    gap: 20px; transition: background .25s;
+    border-left: 2px solid transparent;
+  }
+  .chronicle-entry:hover {
+    background: var(--void3);
+    border-left-color: var(--maroon);
+  }
+  .chr-index {
+    font-family: var(--display); font-size: 2.4rem;
+    color: var(--maroon); line-height: 1;
+    opacity: 0.7;
+  }
+  .chr-label {
+    font-family: var(--mono); font-size: 0.6rem;
+    letter-spacing: 3px; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .chr-text {
+    font-family: var(--body); font-size: 1rem; font-weight: 400; /* ↑ */
+    color: var(--text);         /* ↑ brighter */
+    line-height: 1.8;
+  }
+  .chr-status {
+    font-family: var(--mono); font-size: 0.55rem;
+    letter-spacing: 2px; margin-top: 10px;
+    display: inline-block; padding: 3px 8px;
+    border: 1px solid var(--line);
+  }
+  .status-active { color: #5aac5a; border-color: rgba(74,138,74,0.3); }
+  .status-closed { color: var(--text-dim); }
+  .status-redact { color: var(--maroon); border-color: var(--line); }
+
+  /* ── TERMINAL ── */
+  .terminal {
+    background: var(--void2); border: 1px solid var(--line);
+    font-family: var(--mono); font-size: 0.75rem; overflow: hidden; /* ↑ size */
+  }
+  .terminal-bar {
+    background: rgba(86,10,20,0.2); border-bottom: 1px solid var(--line);
+    padding: 10px 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .t-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+  .terminal-title { flex: 1; text-align: center; color: var(--text-dim); font-size: 0.57rem; letter-spacing: 3px; }
+  .terminal-body { padding: 20px 24px; line-height: 2.2; max-height: 260px; overflow: hidden; }
+  .t-prompt { color: var(--crimson); }
+  .t-cmd { color: rgba(255,255,255,0.7); }
+  .t-ok { color: rgba(90,172,90,0.9); }
+  .t-warn { color: rgba(180,120,40,0.95); }
+  .t-out { color: var(--text-dim); }
+  .t-err { color: #c0202a; }
+
+  /* ── СВЯЗЬ ── */
+  .contact-grid { display: flex; flex-direction: column; gap: 2px; }
+  .contact-card {
+    display: flex; align-items: stretch;
+    background: var(--void2);
+    text-decoration: none; color: inherit;
+    border-left: 2px solid transparent;
+    transition: all .25s; overflow: hidden; position: relative;
+  }
+  .contact-card:hover {
+    background: var(--void3);
+    border-left-color: var(--crimson);
+  }
+  .contact-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(86,10,20,0.1), transparent 60%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .contact-card:hover::before { opacity: 1; }
+  .contact-index {
+    font-family: var(--display); font-size: 3rem;
+    color: var(--maroon); opacity: 0.3;
+    padding: 20px 16px;
+    display: flex; align-items: center;
+    line-height: 1; flex-shrink: 0;
+    width: 72px; text-align: center; justify-content: center;
+  }
+  .contact-info { flex: 1; padding: 22px 16px; }
+  .contact-platform {
+    font-family: var(--mono); font-size: 0.6rem;
+    letter-spacing: 4px; color: var(--maroon); margin-bottom: 5px;
+  }
+  .contact-handle {
+    font-family: var(--display); font-size: 1.5rem;
+    letter-spacing: 3px; color: rgba(255,255,255,0.9);  /* ↑ */
+    margin-bottom: 8px;
+  }
+  .contact-desc {
+    font-family: var(--body); font-size: 0.9rem; font-weight: 400; /* ↑ */
+    color: var(--text-dim); line-height: 1.6;
+  }
+  .contact-arrow {
+    font-family: var(--mono); font-size: 0.8rem;
+    color: var(--text-dim); padding: 20px 20px;
+    display: flex; align-items: center;
+    transition: color .25s, transform .25s; flex-shrink: 0;
+  }
+  .contact-card:hover .contact-arrow { color: var(--crimson); transform: translateX(4px); }
+  .contact-warning {
+    font-family: var(--mono); font-size: 0.57rem;
+    letter-spacing: 2px; color: var(--text-dim);
+    text-align: center; margin-top: 24px;
+    padding: 16px; border: 1px solid var(--line);
+    opacity: 0.7; line-height: 1.8;
+  }
+  .contact-warning::before { content: '// '; color: var(--maroon); }
+  .contact-warning::after  { content: ' //'; color: var(--maroon); }
+
+  /* ── ЗАВЕТЫ ── */
+  .tenets { display: flex; flex-direction: column; gap: 1px; background: var(--line-faint); }
+  .tenet {
+    background: var(--void2); padding: 24px;
+    display: flex; gap: 20px; align-items: flex-start;
+    transition: background .25s;
+    border-left: 2px solid transparent;
+  }
+  .tenet:hover { background: var(--void3); border-left-color: var(--maroon); }
+  .tenet-num {
+    font-family: var(--mono); font-size: 0.6rem;
+    color: var(--maroon); letter-spacing: 2px;
+    padding-top: 4px; flex-shrink: 0; width: 40px;
+  }
+  .tenet-title {
+    font-family: var(--display); font-size: 1.2rem;
+    letter-spacing: 3px; color: rgba(255,255,255,0.88); /* ↑ */
+    margin-bottom: 8px;
+  }
+  .tenet-text {
+    font-family: var(--body); font-size: 1rem; font-weight: 400; /* ↑ */
+    color: var(--text);         /* ↑ brighter */
+    line-height: 1.8;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 48px 0; text-align: center;
+  }
+  .footer-seal {
+    font-family: var(--display); font-size: 0.65rem;
+    letter-spacing: 8px; color: var(--text-ghost); margin-bottom: 14px;
+  }
+  .footer-brand {
+    font-family: var(--display); font-size: 1.2rem;
+    letter-spacing: 8px; color: var(--maroon);
+    margin-bottom: 14px; opacity: 0.8;
+  }
+  .footer-hash {
+    font-family: var(--mono); font-size: 0.5rem;
+    color: var(--text-ghost); letter-spacing: 2px;
+  }
+
+  /* ── MILITARY TOUCH RETICLE (mobile-only) ── */
+  #touch-reticle {
+    position: fixed;
+    width: 52px; height: 52px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 99999;
+    display: none;
+    will-change: transform, left, top;
+  }
+  #touch-reticle svg { width: 100%; height: 100%; }
+  .rt-coords {
+    position: absolute;
+    top: calc(100% + 6px); left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size: 8px;
+    color: rgba(139,0,0,0.9); letter-spacing: 1.5px;
+    white-space: nowrap; line-height: 1;
+  }
+
+  /* ── GLITCH SCROLL EFFECT ── */
+  @keyframes glitch-h {
+    0%   { clip-path: inset(0 0 95% 0); transform: translate(-4px, 0); }
+    20%  { clip-path: inset(30% 0 50% 0); transform: translate(4px, 0); }
+    40%  { clip-path: inset(60% 0 20% 0); transform: translate(-2px, 0); }
+    60%  { clip-path: inset(10% 0 75% 0); transform: translate(3px, 0); }
+    80%  { clip-path: inset(80% 0 5% 0);  transform: translate(-3px, 0); }
+    100% { clip-path: inset(0 0 95% 0);   transform: translate(0, 0); }
+  }
+  .glitch-active {
+    position: relative;
+    overflow: visible;
+  }
+  .glitch-active::before,
+  .glitch-active::after {
+    content: attr(data-glitch);
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    pointer-events: none;
+    font-family: inherit; font-size: inherit;
+    letter-spacing: inherit; color: inherit;
+  }
+  .glitch-active::before {
+    color: rgba(0, 80, 160, 0.7);
+    animation: glitch-h 0.35s steps(1) both;
+  }
+  .glitch-active::after {
+    color: rgba(160, 16, 32, 0.8);
+    animation: glitch-h 0.35s steps(1) 0.05s both reverse;
+  }
+
+  /* ── OBSERVER COUNTER ── */
+  .nav-observer {
+    font-family: var(--mono); font-size: 0.52rem;
+    letter-spacing: 2px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid var(--line);
+    padding: 4px 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-observer::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(139,0,0,0.07), transparent);
+    transform: translateX(-100%);
+    animation: obs-sweep 4s linear infinite;
+  }
+  @keyframes obs-sweep { to { transform: translateX(200%); } }
+  .obs-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #c0202a;
+    animation: obs-blink 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes obs-blink { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
+  .obs-count { color: #c0202a; font-weight: 700; min-width: 18px; text-align: center; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    .nav-drawer { display: block; }
+    .nav-observer { display: none; } /* скрываем в nav, показываем иначе */
+
+    /* hero */
+    .hero { padding: 100px 16px 60px; }
+    .hero-restriction {
+      font-size: 0.48rem;
+      letter-spacing: 4px;
+      padding: 7px 12px;
+      max-width: 100%;
+      word-break: break-word;
+    }
+    .hero-sub { font-size: 0.5rem; letter-spacing: 1.5px; }
+    .lore-block { padding: 14px 14px; max-width: 100%; }
+    .lore-block p { font-size: 0.97rem; }
+    .typewriter { font-size: 0.7rem; }
+
+    /* corner decorations — keep inside viewport */
+    .corner-tl { top: 12px; left: 12px; }
+    .corner-tr { top: 12px; right: 12px; }
+    .corner-bl { bottom: 12px; left: 12px; }
+    .corner-br { bottom: 12px; right: 12px; }
+
+    /* sections */
+    section { padding: 56px 0; }
+    .section-header { gap: 10px; margin-bottom: 32px; }
+    .section-title { font-size: 1.7rem; letter-spacing: 3px; }
+
+    /* dossier */
+    .dossier-row { grid-template-columns: 100px 1fr; }
+    .dossier-key { font-size: 0.5rem; letter-spacing: 1.5px; padding: 12px 10px; }
+    .dossier-val { font-size: 0.9rem; padding: 12px 10px; }
+
+    /* chronicle */
+    .chronicle-entry { grid-template-columns: 48px 1fr; padding: 16px 14px; gap: 12px; }
+    .chr-index { font-size: 1.6rem; }
+    .chr-label { font-size: 0.55rem; }
+    .chr-text { font-size: 0.9rem; }
+
+    /* tenet */
+    .tenet { padding: 18px 14px; gap: 12px; }
+    .tenet-num { width: 30px; font-size: 0.55rem; }
+    .tenet-title { font-size: 1rem; letter-spacing: 2px; }
+    .tenet-text { font-size: 0.92rem; }
+
+    /* terminal */
+    .terminal { font-size: 0.65rem; }
+    .terminal-body { padding: 14px; max-height: 220px; line-height: 2; }
+    .terminal-title { font-size: 0.5rem; letter-spacing: 1.5px; }
+
+    /* contact */
+    .contact-card { flex-wrap: nowrap; }
+    .contact-index { width: 48px; font-size: 2.2rem; padding: 16px 10px; }
+    .contact-info { padding: 16px 10px; }
+    .contact-desc { font-size: 0.82rem; }
+    .contact-handle { font-size: 1.2rem; }
+    .contact-arrow { padding: 16px 12px; }
+    .contact-warning { font-size: 0.5rem; letter-spacing: 1px; padding: 14px 12px; line-height: 2; }
+
+    /* footer */
+    .footer-hash {
+      font-size: 0.42rem; letter-spacing: 0px;
+      overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; max-width: 100%;
+    }
+    .footer-seal { letter-spacing: 3px; font-size: 0.55rem; }
+
+    /* divider */
+    .divider { margin: 36px 0; }
+    .divider span { font-size: 0.5rem; }
+  }
+
+  @media (max-width: 380px) {
+    .dossier-row { grid-template-columns: 1fr; }
+    .dossier-key { border-right: none; border-bottom: 1px solid var(--line); padding: 10px 10px 6px; }
+    .dossier-val { padding: 6px 10px 12px; }
+    .hero-callsign { letter-spacing: 5px; }
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<!-- MILITARY TOUCH RETICLE (injected by JS) -->
+<div id="touch-reticle">
+  <svg viewBox="-26 -26 52 52" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <!-- outer ring faint -->
+    <circle cx="0" cy="0" r="22" stroke="rgba(139,0,0,0.18)" stroke-width="0.6"/>
+    <!-- inner ring -->
+    <circle cx="0" cy="0" r="14" stroke="rgba(139,0,0,0.35)" stroke-width="0.7"/>
+    <!-- crosshairs — with gap in center -->
+    <line x1="-26" y1="0" x2="-5" y2="0" stroke="#8B0000" stroke-width="0.9" opacity="0.85"/>
+    <line x1="5"   y1="0" x2="26"  y2="0" stroke="#8B0000" stroke-width="0.9" opacity="0.85"/>
+    <line x1="0" y1="-26" x2="0" y2="-5"  stroke="#8B0000" stroke-width="0.9" opacity="0.85"/>
+    <line x1="0" y1="5"   x2="0" y2="26"  stroke="#8B0000" stroke-width="0.9" opacity="0.85"/>
+    <!-- corner brackets TL -->
+    <polyline points="-22,-22 -22,-13" stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <polyline points="-22,-22 -13,-22" stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <!-- TR -->
+    <polyline points="22,-22 22,-13"  stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <polyline points="22,-22 13,-22"  stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <!-- BL -->
+    <polyline points="-22,22 -22,13"  stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <polyline points="-22,22 -13,22"  stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <!-- BR -->
+    <polyline points="22,22 22,13"    stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <polyline points="22,22 13,22"    stroke="#8B0000" stroke-width="1.4" opacity="0.9"/>
+    <!-- center dot -->
+    <circle cx="0" cy="0" r="1.8" fill="#8B0000" opacity="0.9"/>
+    <!-- tick marks on ring -->
+    <line x1="0" y1="-14" x2="0" y2="-17" stroke="#8B0000" stroke-width="0.8" opacity="0.5"/>
+    <line x1="0" y1="14"  x2="0" y2="17"  stroke="#8B0000" stroke-width="0.8" opacity="0.5"/>
+    <line x1="-14" y1="0" x2="-17" y2="0" stroke="#8B0000" stroke-width="0.8" opacity="0.5"/>
+    <line x1="14"  y1="0" x2="17"  y2="0" stroke="#8B0000" stroke-width="0.8" opacity="0.5"/>
+  </svg>
+  <div class="rt-coords" id="rt-coords">000/000</div>
+</div>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">HS://SINNER</a>
+    <div class="nav-links" id="nav-links">
+      <a href="#dossier">ДОСЬЕ</a>
+      <a href="#chronicle">ХРОНИКА</a>
+      <a href="#tenets">ЗАВЕТЫ</a>
+      <a href="#contact">СВЯЗЬ</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-status">
+        <div class="status-dot"></div>RESTRICTED
+      </div>
+      <div class="nav-observer" title="Активных наблюдателей">
+        <div class="obs-dot"></div>
+        <span>OBS:</span>
+        <span class="obs-count" id="obs-count">---</span>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+<div class="nav-drawer" id="nav-drawer">
+  <a href="#dossier">ДОСЬЕ</a>
+  <a href="#chronicle">ХРОНИКА</a>
+  <a href="#tenets">ЗАВЕТЫ</a>
+  <a href="#contact">СВЯЗЬ</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <div class="hero-restriction">ДОСТУП ОГРАНИЧЕН — УРОВЕНЬ ДОПУСКА: АЛЬФА</div>
+
+  <div class="sigil">
+    <div class="sigil-ring2"></div>
+    <div class="sigil-ring"></div>
+    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <circle cx="40" cy="40" r="36" stroke="#560a14" stroke-width="0.8"/>
+      <circle cx="40" cy="40" r="28" stroke="#560a14" stroke-width="0.5" stroke-dasharray="2 4"/>
+      <line x1="40" y1="4" x2="40" y2="76" stroke="#8B0000" stroke-width="0.6"/>
+      <line x1="4" y1="40" x2="76" y2="40" stroke="#8B0000" stroke-width="0.6"/>
+      <line x1="40" y1="12" x2="40" y2="40" stroke="#8B0000" stroke-width="1.2"/>
+      <circle cx="40" cy="40" r="3" fill="#8B0000" opacity="0.8"/>
+      <path d="M40 12 L45 28 L40 26 L35 28 Z" fill="#8B0000" opacity="0.7"/>
+    </svg>
+  </div>
+
+  <div class="hero-callsign">HO1Y <span>SINNER</span></div>
+  <div class="hero-sub">// ИДЕНТИФИКАТОР ВЕРИФИЦИРОВАН — ПРОТОКОЛ ТЕНИ АКТИВЕН</div>
+
+  <div class="lore-block">
+    <p>Имена — это иллюзия контроля. Тот, кто знает твоё имя, считает, что знает тебя. Пусть знают позывной.</p>
+    <p>Грех — не слабость. Грех — это честность. Святой притворяется. Грешник действует.</p>
+  </div>
+
+  <div class="typewriter" id="typewriter"></div>
+
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-arrow">▾</div>
+  </div>
+</section>
+
+<!-- ДОСЬЕ -->
+<section id="dossier">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">01 //</span>
+      <h2 class="section-title">ДОСЬЕ</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="dossier-block reveal">
+      <div class="dossier-row">
+        <div class="dossier-key">ПОЗЫВНОЙ</div>
+        <div class="dossier-val">HO1Y SINNER</div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">СТАТУС</div>
+        <div class="dossier-val"><em>◉ АКТИВЕН</em></div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">КЛАССИФИКАЦИЯ</div>
+        <div class="dossier-val">ПРИЗРАК — ПЕРВЫЙ КЛАСС</div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">ПРОИСХОЖДЕНИЕ</div>
+        <div class="dossier-val redacted">████████████ — ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">СПЕЦИАЛИЗАЦИЯ</div>
+        <div class="dossier-val">Разведка. Нейтрализация. Исчезновение.</div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">ПРИНЦИП</div>
+        <div class="dossier-val">Никакого следа. Никаких лишних слов. Только результат.</div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">ОПИСАНИЕ</div>
+        <div class="dossier-val" style="line-height:1.8;">
+          Оперативник с нулевой терпимостью к шуму. Действует там, где другие видят стену. 
+          Психологический профиль — аномальный. Уровень угрозы — переменный. 
+          Мотивация — не поддаётся стандартной классификации.
+        </div>
+      </div>
+      <div class="dossier-row">
+        <div class="dossier-key">ПОСЛЕДНИЙ КОНТАКТ</div>
+        <div class="dossier-val redacted">████ — КАНАЛ ЗАШИФРОВАН</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ХРОНИКА -->
+<section id="chronicle">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">02 //</span>
+      <h2 class="section-title">ХРОНИКА</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="chronicle">
+      <div class="chronicle-entry reveal">
+        <div class="chr-index">I</div>
+        <div class="chr-body">
+          <div class="chr-label">ОПЕРАЦИЯ — ТЁМНЫЙ МЕРИДИАН</div>
+          <div class="chr-text">Первичный выход. Объект не знал о наблюдении. Операция завершена без эксфильтрации — субъект исчез сам, оставив только позывной.</div>
+          <span class="chr-status status-closed">ЗАКРЫТО</span>
+        </div>
+      </div>
+      <div class="chronicle-entry reveal">
+        <div class="chr-index">II</div>
+        <div class="chr-body">
+          <div class="chr-label">ОПЕРАЦИЯ — АЛОЕ МОЛЧАНИЕ</div>
+          <div class="chr-text">Инфильтрация в закрытый периметр. Контакт установлен. Данные переданы. Источник не установлен — система идентификации не зафиксировала присутствия.</div>
+          <span class="chr-status status-closed">ЗАКРЫТО</span>
+        </div>
+      </div>
+      <div class="chronicle-entry reveal">
+        <div class="chr-index">III</div>
+        <div class="chr-body">
+          <div class="chr-label">ОПЕРАЦИЯ — НУЛЕВОЙ СВИДЕТЕЛЬ</div>
+          <div class="chr-text">Параллельная работа в трёх секторах. Ни один сектор не знал о двух других. Координация без координатора. Результат — единственный артефакт операции.</div>
+          <span class="chr-status status-active">В ПРОЦЕССЕ</span>
+        </div>
+      </div>
+      <div class="chronicle-entry reveal">
+        <div class="chr-index">IV</div>
+        <div class="chr-body">
+          <div class="chr-label">ОПЕРАЦИЯ — █████████</div>
+          <div class="chr-text">Детали засекречены. Доступ закрыт для внешних запросов. Существование операции официально не подтверждено.</div>
+          <span class="chr-status status-redact">ГРИФ СЕКРЕТНО</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider reveal"><span>// TERMINAL ACCESS //</span></div>
+
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <div class="t-dot"></div>
+        <div class="t-dot"></div>
+        <div class="t-dot"></div>
+        <div class="terminal-title">SECURE_SHELL — H0LY_SINNER@VOID-NET:~$</div>
+      </div>
+      <div class="terminal-body" id="terminal-body">
+        <div class="t-line"><span class="t-prompt">void@null:~$ </span><span class="t-cmd">_</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ЗАВЕТЫ -->
+<section id="tenets">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">03 //</span>
+      <h2 class="section-title">ЗАВЕТЫ</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="tenets">
+      <div class="tenet reveal">
+        <div class="tenet-num">I</div>
+        <div class="tenet-content">
+          <div class="tenet-title">НЕВИДИМОСТЬ — НЕ МАСКА</div>
+          <div class="tenet-text">Те, кто прячется — боятся. Те, кого нет — свободны. Разница между трусостью и призраком — в намерении. Мы не прячемся. Мы просто не существуем там, где нас ищут.</div>
+        </div>
+      </div>
+      <div class="tenet reveal">
+        <div class="tenet-num">II</div>
+        <div class="tenet-content">
+          <div class="tenet-title">ГРЕХ КАК МЕТОД</div>
+          <div class="tenet-text">Мораль — инструмент управления. Система делит людей на чистых и падших, чтобы контролировать обе группы. Мы вышли из системы. Мы не чистые и не падшие — мы другие.</div>
+        </div>
+      </div>
+      <div class="tenet reveal">
+        <div class="tenet-num">III</div>
+        <div class="tenet-content">
+          <div class="tenet-title">СЛОВО — ГРУЗ</div>
+          <div class="tenet-text">Говорить — значит оставлять след. Каждое лишнее слово — уязвимость. Молчание не пустота — это плотность. Тишина говорит больше, чем любой монолог.</div>
+        </div>
+      </div>
+      <div class="tenet reveal">
+        <div class="tenet-num">IV</div>
+        <div class="tenet-content">
+          <div class="tenet-title">ДОВЕРИЕ — РЕДКИЙ РЕСУРС</div>
+          <div class="tenet-text">Не раздаётся. Не продаётся. Не предполагается по умолчанию. Заслуживается в условиях, которые большинство не переживают. Те, кто здесь — уже прошли первый фильтр.</div>
+        </div>
+      </div>
+      <div class="tenet reveal">
+        <div class="tenet-num">V</div>
+        <div class="tenet-content">
+          <div class="tenet-title">РЕЗУЛЬТАТ — ЕДИНСТВЕННЫЙ ЯЗЫК</div>
+          <div class="tenet-text">Намерений не существует. Существуют только последствия. Планы — черновики. Действие — подпись. Всё остальное — фон.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- СВЯЗЬ -->
+<section id="contact">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">04 //</span>
+      <h2 class="section-title">СВЯЗЬ</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="contact-grid reveal">
+      <a class="contact-card" href="https://t.me/ho1ysinner" target="_blank">
+        <div class="contact-index">T</div>
+        <div class="contact-info">
+          <div class="contact-platform">TELEGRAM</div>
+          <div class="contact-handle">@HO1Y SINNER</div>
+          <div class="contact-desc">Прямой канал. Одностороннее вещание. Ответ не гарантирован — только если сочту нужным.</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+      <a class="contact-card" href="https://discord.gg/ho1ysinner" target="_blank">
+        <div class="contact-index">D</div>
+        <div class="contact-info">
+          <div class="contact-platform">DISCORD</div>
+          <div class="contact-handle">HO1Y SINNER</div>
+          <div class="contact-desc">Закрытый штаб. Вход — по результату, не по желанию. Ссылка работает только для тех, кого ждут.</div>
+        </div>
+        <div class="contact-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="contact-warning reveal">
+      НЕ СТУЧИ В ЗАКРЫТУЮ ДВЕРЬ. ЕСЛИ ТЫ НУЖЕН — ТЫ УЖЕ ЗНАЕШЬ ГДЕ МЕНЯ НАЙТИ
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-seal">// ФАЙЛ ЗАКРЫТ — КОПИРОВАНИЕ ЗАПРЕЩЕНО //</div>
+    <div class="footer-brand">HO1Y SINNER</div>
+    <div class="footer-hash">SHA-256: ████████████████████████████████████████████████████████████████</div>
+  </div>
+</footer>
+
+<script>
+// ── TYPEWRITER ──
+const phrases = [
+  'ИНИЦИАЛИЗАЦИЯ ПРОТОКОЛА ТЕНИ...',
+  'ИДЕНТИФИКАТОР ПОДТВЕРЖДЁН.',
+  'ОТКРЫТЫХ КАНАЛОВ НЕТ.',
+  'СИСТЕМА НАБЛЮДАЕТ.',
+  'СЛЕД НЕ ОБНАРУЖЕН.',
+  'ОПЕРАЦИЯ ПРОДОЛЖАЕТСЯ.',
+];
+let pi = 0, ci = 0, del = false;
+const tw = document.getElementById('typewriter');
+function type() {
+  const cur = phrases[pi];
+  if (!del) {
+    ci++;
+    tw.innerHTML = cur.slice(0, ci) + '<span class="tw-cursor">█</span>';
+    if (ci === cur.length) { del = true; setTimeout(type, 2200); return; }
+  } else {
+    ci--;
+    tw.innerHTML = cur.slice(0, ci) + '<span class="tw-cursor">█</span>';
+    if (ci === 0) { del = false; pi = (pi + 1) % phrases.length; }
+  }
+  setTimeout(type, del ? 35 : 65);
+}
+type();
+
+// ── TERMINAL ──
+const lines = [
+  { prompt: 'void@null:~$ ', cmd: 'whoami --deep', delay: 0 },
+  { out: '> ПОЗЫВНОЙ: HO1Y_SINNER', cls: 't-out', delay: 900 },
+  { out: '> ЛИЧНОСТЬ: [ДАННЫЕ УДАЛЕНЫ]', cls: 't-err', delay: 1400 },
+  { prompt: 'void@null:~$ ', cmd: 'status --secure', delay: 2300 },
+  { out: '> ШИФРОВАНИЕ: АКТИВНО', cls: 't-ok', delay: 3100 },
+  { out: '> ТРАССИРОВКА: НЕВОЗМОЖНА', cls: 't-ok', delay: 3600 },
+  { out: '> НАБЛЮДАТЕЛИ: ОБНАРУЖЕНЫ (3)', cls: 't-warn', delay: 4200 },
+  { prompt: 'void@null:~$ ', cmd: 'purge --traces --silent', delay: 5000 },
+  { out: '> СЛЕДЫ УНИЧТОЖЕНЫ.', cls: 't-ok', delay: 5900 },
+  { out: '> СЕССИЯ ЗАКРЫТА.', cls: 't-err', delay: 6400 },
+  { prompt: 'void@null:~$ ', cmd: '█', delay: 7100 },
+];
+const tb = document.getElementById('terminal-body');
+const tObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tb.innerHTML = '';
+      lines.forEach(({ prompt, cmd, out, cls, delay }) => {
+        setTimeout(() => {
+          const d = document.createElement('div');
+          d.className = 't-line';
+          if (cmd !== undefined) {
+            d.innerHTML = `<span class="t-prompt">${prompt}</span><span class="t-cmd">${cmd}</span>`;
+          } else {
+            d.innerHTML = `<span class="${cls || 't-out'}">${out}</span>`;
+          }
+          tb.appendChild(d);
+          tb.scrollTop = tb.scrollHeight;
+        }, delay);
+      });
+      tObs.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+tObs.observe(tb);
+
+// ── MOUSE TRAIL (desktop only) ──
+if (!('ontouchstart' in window)) {
+  let dots = [];
+  document.addEventListener('mousemove', e => {
+    const dot = document.createElement('div');
+    dot.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:3px;height:3px;border-radius:50%;background:rgba(139,0,0,0.5);pointer-events:none;z-index:9997;transition:opacity .6s;`;
+    document.body.appendChild(dot);
+    dots.push(dot);
+    if (dots.length > 14) { dots[0].remove(); dots.shift(); }
+    requestAnimationFrame(() => { dot.style.opacity = '0'; });
+    setTimeout(() => { dot.remove(); dots = dots.filter(d => d !== dot); }, 600);
+  });
+}
+
+// ── MILITARY TOUCH TRAIL (mobile) ──
+(function() {
+  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (!isTouchDevice) return;
+
+  const reticle   = document.getElementById('touch-reticle');
+  const rtCoords  = document.getElementById('rt-coords');
+  let trailDots   = [];
+  let touching    = false;
+  let raf         = null;
+  let currentX    = 0, currentY = 0;
+
+  // Rotate the reticle slowly when active
+  let angle = 0;
+  function animateReticle() {
+    angle += 0.4;
+    reticle.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+    if (touching) raf = requestAnimationFrame(animateReticle);
+  }
+
+  function spawnTrailDot(x, y, index) {
+    const dot = document.createElement('div');
+    // alternate between square bracket pairs and simple dots
+    const isSquare = (index % 4 === 0);
+    if (isSquare) {
+      dot.style.cssText = `
+        position:fixed;
+        left:${x}px; top:${y}px;
+        width:9px; height:9px;
+        border:1px solid rgba(139,0,0,0.75);
+        transform:translate(-50%,-50%) rotate(${Math.random()*30-15}deg);
+        pointer-events:none; z-index:9996;
+        transition:opacity .55s, transform .55s;
+        box-sizing:border-box;
+      `;
+    } else {
+      const size = 2 + Math.random() * 2;
+      dot.style.cssText = `
+        position:fixed;
+        left:${x}px; top:${y}px;
+        width:${size}px; height:${size}px;
+        border-radius:50%;
+        background:rgba(139,0,0,${0.5 + Math.random()*0.3});
+        transform:translate(-50%,-50%);
+        pointer-events:none; z-index:9996;
+        transition:opacity .5s;
+      `;
+    }
+    document.body.appendChild(dot);
+    trailDots.push(dot);
+
+    // Limit trail length
+    if (trailDots.length > 20) {
+      trailDots[0].remove();
+      trailDots.shift();
+    }
+
+    // Fade out
+    requestAnimationFrame(() => {
+      dot.style.opacity = '0';
+      if (isSquare) dot.style.transform = `translate(-50%,-50%) rotate(${Math.random()*90}deg) scale(0.3)`;
+    });
+    setTimeout(() => {
+      dot.remove();
+      trailDots = trailDots.filter(d => d !== dot);
+    }, 560);
+  }
+
+  // Coordinate flash element
+  const coordFlash = document.createElement('div');
+  coordFlash.style.cssText = `
+    position:fixed; pointer-events:none; z-index:99998;
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:rgba(160,16,32,0.95); letter-spacing:2px;
+    background:rgba(4,3,4,0.85); padding:3px 7px;
+    border:1px solid rgba(139,0,0,0.4);
+    display:none; white-space:nowrap;
+    transition:opacity .4s;
+  `;
+  document.body.appendChild(coordFlash);
+
+  let dotIndex = 0;
+  let lastDotX = -99, lastDotY = -99;
+  const DOT_SPACING = 10; // pixels between trail dots
+
+  document.addEventListener('touchstart', e => {
+    touching = true;
+    const t = e.touches[0];
+    currentX = t.clientX; currentY = t.clientY;
+    reticle.style.left = currentX + 'px';
+    reticle.style.top  = currentY + 'px';
+    reticle.style.display = 'block';
+    rtCoords.textContent = pad3(currentX) + '/' + pad3(currentY);
+
+    // Show coordinate flash above touch
+    coordFlash.textContent = `◈ ${pad3(Math.round(currentX))} : ${pad3(Math.round(currentY))}`;
+    coordFlash.style.left  = (currentX + 30) + 'px';
+    coordFlash.style.top   = (currentY - 28) + 'px';
+    coordFlash.style.display = 'block';
+    coordFlash.style.opacity = '1';
+    setTimeout(() => { coordFlash.style.opacity = '0'; }, 600);
+    setTimeout(() => { coordFlash.style.display = 'none'; }, 1000);
+
+    angle = 0;
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(animateReticle);
+
+    if (navigator.vibrate) navigator.vibrate(12);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    currentX = t.clientX; currentY = t.clientY;
+
+    // Move reticle
+    reticle.style.left = currentX + 'px';
+    reticle.style.top  = currentY + 'px';
+    rtCoords.textContent = pad3(currentX) + '/' + pad3(currentY);
+
+    // Spawn dot only if moved enough
+    const dx = currentX - lastDotX;
+    const dy = currentY - lastDotY;
+    if (Math.sqrt(dx*dx + dy*dy) >= DOT_SPACING) {
+      spawnTrailDot(currentX, currentY, dotIndex++);
+      lastDotX = currentX; lastDotY = currentY;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    touching = false;
+    cancelAnimationFrame(raf);
+    // Fade out reticle
+    reticle.style.transition = 'opacity .4s';
+    reticle.style.opacity = '0';
+    setTimeout(() => {
+      reticle.style.display = 'none';
+      reticle.style.opacity = '1';
+      reticle.style.transition = '';
+    }, 400);
+    lastDotX = -99; lastDotY = -99;
+  });
+
+  function pad3(n) {
+    return String(Math.max(0, Math.floor(n))).padStart(3, '0');
+  }
+})();
+
+// ── GLITCH on hero title ──
+const callsign = document.querySelector('.hero-callsign');
+if (callsign) {
+  callsign.addEventListener('mouseenter', () => {
+    callsign.style.textShadow = '3px 0 var(--crimson), -3px 0 rgba(0,50,80,0.6), 0 0 60px rgba(139,0,0,0.4)';
+    setTimeout(() => {
+      callsign.style.textShadow = '0 0 60px rgba(139,0,0,0.3), 0 0 2px rgba(139,0,0,0.6)';
+    }, 120);
+  });
+  // Touch glitch
+  callsign.addEventListener('touchstart', () => {
+    callsign.style.textShadow = '4px 0 var(--crimson), -4px 0 rgba(0,80,120,0.7), 0 0 80px rgba(139,0,0,0.5)';
+    setTimeout(() => {
+      callsign.style.textShadow = '0 0 60px rgba(139,0,0,0.3), 0 0 2px rgba(139,0,0,0.6)';
+    }, 180);
+  }, { passive: true });
+}
+
+// ── HAMBURGER MENU ──
+const hamburger = document.getElementById('hamburger');
+const drawer    = document.getElementById('nav-drawer');
+hamburger.addEventListener('click', () => {
+  const isOpen = drawer.classList.toggle('open');
+  hamburger.classList.toggle('open', isOpen);
+  hamburger.setAttribute('aria-expanded', isOpen);
+});
+// Close on link click
+drawer.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    drawer.classList.remove('open');
+    hamburger.classList.remove('open');
+  });
+});
+
+// ── OBSERVER COUNTER ──
+(function() {
+  const el = document.getElementById('obs-count');
+  if (!el) return;
+  let base = 89 + Math.floor(Math.random() * 120); // 89-208
+  function randomDrift() {
+    const delta = Math.floor(Math.random() * 5) - 2; // -2..+2
+    base = Math.max(12, Math.min(999, base + delta));
+    el.textContent = String(base).padStart(3, '0');
+    // occasional spike
+    if (Math.random() < 0.08) {
+      const spike = base + Math.floor(Math.random() * 18) + 3;
+      el.textContent = String(spike).padStart(3, '0');
+      el.style.color = '#e03040';
+      setTimeout(() => {
+        el.textContent = String(base).padStart(3, '0');
+        el.style.color = '';
+      }, 400);
+    }
+    setTimeout(randomDrift, 1800 + Math.random() * 2400);
+  }
+  randomDrift();
+})();
+
+// ── GLITCH ON SCROLL ──
+(function() {
+  const titles = document.querySelectorAll('.section-title');
+  const glitchObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const el = e.target;
+        const txt = el.textContent;
+        el.setAttribute('data-glitch', txt);
+        el.classList.add('glitch-active');
+        setTimeout(() => el.classList.remove('glitch-active'), 400);
+        glitchObs.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  titles.forEach(t => glitchObs.observe(t));
+})();
+
+// ── SCROLL REVEAL ──
+const revealEls = document.querySelectorAll('.reveal');
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      // stagger siblings slightly
+      const siblings = entry.target.parentElement.querySelectorAll('.reveal');
+      let delay = 0;
+      siblings.forEach((s, idx) => { if (s === entry.target) delay = idx * 60; });
+      setTimeout(() => entry.target.classList.add('visible'), delay);
+      revObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+revealEls.forEach(el => revObs.observe(el));
+
+// ── ACTIVE NAV SECTION ──
+const sections = document.querySelectorAll('section[id]');
+const navAs    = document.querySelectorAll('.nav-links a, .nav-drawer a');
+const navObs   = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navAs.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+}, { threshold: 0.35 });
+sections.forEach(s => navObs.observe(s));
+
+// ── NAV scroll style ──
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+</script>
+</body>
+</html>
