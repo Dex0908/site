@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ho1ysinner · 수현</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --bg-deep: #060305;
+                --bg-card: #0e0609;
+                --bg-border: #280912;
+                --burg-dark: #380a14;
+                --burg-mid: #5e1022;
+                --burg: #8b1a2a;
+                --burg-light: #a82435;
+                --accent: #b8394a;
+                --accent-bright: #cf5060;
+                --text-prim: #ecddd0;
+                --text-sec: #b89585;
+                --text-muted: #6e4e48;
+            }
+
+            * {
+                cursor: none !important;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                background-color: var(--bg-deep);
+                color: var(--text-prim);
+                font-family: "Jost", sans-serif;
+                font-weight: 300;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+
+            /* ── Grain overlay ── */
+            body::after {
+                content: "";
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 1000;
+                opacity: 0.035;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+            }
+
+            /* ── Ambient glow ── */
+            .glow {
+                position: fixed;
+                width: 600px;
+                height: 600px;
+                background: radial-gradient(
+                    circle,
+                    rgba(100, 12, 28, 0.18) 0%,
+                    transparent 70%
+                );
+                top: 40%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 0;
+            }
+            .glow-top {
+                position: fixed;
+                width: 300px;
+                height: 200px;
+                background: radial-gradient(
+                    ellipse,
+                    rgba(80, 8, 22, 0.12) 0%,
+                    transparent 70%
+                );
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                pointer-events: none;
+                z-index: 0;
+            }
+
+            /* ── Custom cursor ── */
+            #cur-ring {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 28px;
+                height: 28px;
+                border: 1px solid var(--accent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9999;
+                transform: translate(-50%, -50%);
+                transition:
+                    width 0.25s,
+                    height 0.25s,
+                    opacity 0.25s,
+                    border-color 0.25s;
+                opacity: 0.65;
+            }
+            #cur-ring::before,
+            #cur-ring::after {
+                content: "";
+                position: absolute;
+                background: var(--accent);
+                opacity: 0.55;
+            }
+            #cur-ring::before {
+                width: 1px;
+                height: 10px;
+                top: -5px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            #cur-ring::after {
+                width: 10px;
+                height: 1px;
+                top: 50%;
+                left: -5px;
+                transform: translateY(-50%);
+            }
+            #cur-dot {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 4px;
+                background: var(--accent-bright);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9999;
+                transform: translate(-50%, -50%);
+            }
+
+            /* ── Layout ── */
+            .page {
+                position: relative;
+                z-index: 2;
+                max-width: 500px;
+                margin: 0 auto;
+                padding: 52px 32px 80px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            /* ── Language switcher ── */
+            .langs {
+                display: flex;
+                gap: 20px;
+                align-self: flex-end;
+                margin-bottom: 44px;
+            }
+            .l-btn {
+                background: none;
+                border: none;
+                font-family: "Jost", sans-serif;
+                font-size: 10px;
+                font-weight: 300;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                padding: 2px 0 4px;
+                position: relative;
+                transition: color 0.3s;
+            }
+            .l-btn::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 1px;
+                width: 0;
+                background: var(--accent);
+                transition: width 0.3s;
+            }
+            .l-btn.active {
+                color: var(--accent);
+            }
+            .l-btn.active::after,
+            .l-btn:hover::after {
+                width: 100%;
+            }
+            .l-btn:hover {
+                color: var(--text-sec);
+            }
+
+            /* ── Top sigil ── */
+            .sigil {
+                font-size: 13px;
+                letter-spacing: 0.5em;
+                color: var(--burg);
+                margin-bottom: 36px;
+                opacity: 0.7;
+                animation: fadeDown 0.8s ease both;
+            }
+
+            /* ── Avatar ── */
+            .avatar-wrap {
+                position: relative;
+                width: 148px;
+                height: 148px;
+                margin-bottom: 32px;
+                animation: fadeUp 1s ease 0.2s both;
+            }
+            .avatar-ring1,
+            .avatar-ring2,
+            .avatar-ring3 {
+                position: absolute;
+                border-radius: 50%;
+                border: 1px solid;
+            }
+            .avatar-ring1 {
+                inset: -7px;
+                border-color: var(--burg-mid);
+                opacity: 0.5;
+            }
+            .avatar-ring2 {
+                inset: -14px;
+                border-color: var(--burg-dark);
+                opacity: 0.3;
+                animation: spin 30s linear infinite;
+            }
+            .avatar-ring3 {
+                inset: -20px;
+                border-color: var(--bg-border);
+                opacity: 0.2;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .avatar-img {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 1.5px solid var(--burg-mid);
+                filter: grayscale(15%) contrast(1.05) brightness(0.95);
+                display: block;
+            }
+            .avatar-fb {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: linear-gradient(
+                    145deg,
+                    var(--burg-dark) 0%,
+                    var(--bg-card) 100%
+                );
+                border: 1.5px solid var(--burg-mid);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: "Cormorant Garamond", serif;
+                font-size: 38px;
+                font-weight: 300;
+                color: var(--text-sec);
+            }
+
+            /* ── Name ── */
+            .name-wrap {
+                text-align: center;
+                animation: fadeUp 1s ease 0.35s both;
+            }
+            .name-main {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 46px;
+                font-weight: 300;
+                letter-spacing: 0.1em;
+                color: var(--text-prim);
+                line-height: 1;
+                margin-bottom: 6px;
+            }
+            .name-korean {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 18px;
+                font-weight: 300;
+                color: var(--text-muted);
+                letter-spacing: 0.15em;
+                margin-bottom: 4px;
+            }
+            .name-handle {
+                font-family: "Jost", sans-serif;
+                font-size: 10px;
+                font-weight: 200;
+                letter-spacing: 0.4em;
+                text-transform: uppercase;
+                color: var(--burg-light);
+                opacity: 0.8;
+            }
+
+            /* ── Ornamental divider ── */
+            .orn {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                max-width: 300px;
+                margin: 30px 0;
+            }
+            .orn-line {
+                flex: 1;
+                height: 1px;
+                background: linear-gradient(
+                    to right,
+                    transparent,
+                    var(--burg-dark),
+                    transparent
+                );
+            }
+            .orn-center {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+            }
+            .orn-diamond {
+                width: 4px;
+                height: 4px;
+                background: var(--burg);
+                transform: rotate(45deg);
+                opacity: 0.8;
+            }
+            .orn-dot {
+                width: 2px;
+                height: 2px;
+                background: var(--burg-mid);
+                border-radius: 50%;
+                opacity: 0.6;
+            }
+
+            /* ── Bio ── */
+            .bio {
+                font-family: "Cormorant Garamond", serif;
+                font-size: 17px;
+                font-weight: 300;
+                font-style: italic;
+                line-height: 1.95;
+                color: var(--text-sec);
+                text-align: center;
+                max-width: 380px;
+                letter-spacing: 0.025em;
+                animation: fadeUp 1s ease 0.5s both;
+            }
+
+            /* ── Tags ── */
+            .tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+                margin-top: 28px;
+                animation: fadeUp 1s ease 0.6s both;
+            }
+            .tag {
+                font-family: "Jost", sans-serif;
+                font-size: 9px;
+                font-weight: 300;
+                letter-spacing: 0.25em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                border: 1px solid var(--bg-border);
+                padding: 5px 14px;
+                transition:
+                    color 0.3s,
+                    border-color 0.3s;
+            }
+            .tag::before {
+                content: "◈";
+                margin-right: 6px;
+                color: var(--burg);
+                font-size: 8px;
+            }
+            .tag:hover {
+                color: var(--text-sec);
+                border-color: var(--burg-dark);
+            }
+
+            /* ── Social links ── */
+            .socials {
+                display: flex;
+                gap: 16px;
+                margin-top: 38px;
+                flex-wrap: wrap;
+                justify-content: center;
+                animation: fadeUp 1s ease 0.7s both;
+            }
+            .soc {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                text-decoration: none;
+                color: var(--text-muted);
+                font-family: "Jost", sans-serif;
+                font-size: 11px;
+                font-weight: 300;
+                letter-spacing: 0.15em;
+                text-transform: lowercase;
+                padding: 10px 22px;
+                border: 1px solid var(--bg-border);
+                position: relative;
+                overflow: hidden;
+                transition:
+                    color 0.35s,
+                    border-color 0.35s;
+            }
+            .soc::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: var(--burg-dark);
+                transform: translateX(-101%);
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 0;
+            }
+            .soc:hover {
+                color: var(--text-prim);
+                border-color: var(--burg);
+            }
+            .soc:hover::before {
+                transform: translateX(0);
+            }
+            .soc svg,
+            .soc span {
+                position: relative;
+                z-index: 1;
+            }
+            .soc svg {
+                width: 15px;
+                height: 15px;
+                fill: currentColor;
+                flex-shrink: 0;
+            }
+
+            /* ── Footer ── */
+            .footer {
+                margin-top: 52px;
+                font-family: "Jost", sans-serif;
+                font-size: 9px;
+                font-weight: 200;
+                letter-spacing: 0.35em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                opacity: 0.45;
+                animation: fadeUp 1s ease 0.9s both;
+            }
+
+            /* ── Animations ── */
+            @keyframes fadeDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-16px);
+                }
+                to {
+                    opacity: 0.7;
+                    transform: translateY(0);
+                }
+            }
+            @keyframes fadeUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* ── Mobile ── */
+            @media (max-width: 480px) {
+                .page {
+                    padding: 38px 22px 64px;
+                }
+                .name-main {
+                    font-size: 38px;
+                }
+                .bio {
+                    font-size: 15px;
+                    line-height: 1.85;
+                }
+                .socials {
+                    gap: 12px;
+                }
+                .soc {
+                    padding: 9px 18px;
+                    font-size: 10px;
+                }
+                .avatar-wrap {
+                    width: 128px;
+                    height: 128px;
+                }
+                .avatar-fb {
+                    font-size: 32px;
+                }
+            }
+            @media (max-width: 360px) {
+                .name-main {
+                    font-size: 32px;
+                }
+                .socials {
+                    flex-direction: column;
+                    align-items: center;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="glow"></div>
+        <div class="glow-top"></div>
+        <div id="cur-ring"></div>
+        <div id="cur-dot"></div>
+
+        <main class="page">
+            <!-- Language switcher -->
+            <nav class="langs" aria-label="Language selector">
+                <button
+                    class="l-btn active"
+                    id="btn-ru"
+                    onclick="setLang('ru')"
+                >
+                    RU
+                </button>
+                <button class="l-btn" id="btn-en" onclick="setLang('en')">
+                    EN
+                </button>
+                <button class="l-btn" id="btn-ko" onclick="setLang('ko')">
+                    KO
+                </button>
+            </nav>
+
+            <!-- Top sigil -->
+            <div class="sigil" aria-hidden="true">⸻ ✦ ⸻</div>
+
+            <!-- Avatar -->
+            <div class="avatar-wrap" role="img" aria-label="Suhyeon">
+                <div class="avatar-ring1"></div>
+                <div class="avatar-ring2"></div>
+                <div class="avatar-ring3"></div>
+                <!--
+      AVATAR: Replace the src below with your direct image URL.
+      Pinterest pin URLs cannot be used directly as image sources.
+      Example: src="https://i.pinimg.com/originals/XX/YY/ZZ/yourimage.jpg"
+    -->
+                <img
+                    class="avatar-img"
+                    id="ava-img"
+                    src="images/ava.jpg"
+                    alt="Suhyeon"
+                    onerror="
+                        this.style.display = 'none';
+                        document.getElementById('ava-fb').style.display =
+                            'flex';
+                    "
+                />
+                <div class="avatar-fb" id="ava-fb" style="display: none">
+                    수현
+                </div>
+            </div>
+
+            <!-- Name -->
+            <div class="name-wrap">
+                <h1 class="name-main">Suhyeon</h1>
+                <p class="name-korean">수현</p>
+                <p class="name-handle">ho1ysinner</p>
+            </div>
+
+            <!-- Divider -->
+            <div class="orn" aria-hidden="true">
+                <div class="orn-line"></div>
+                <div class="orn-center">
+                    <div class="orn-dot"></div>
+                    <div class="orn-diamond"></div>
+                    <div class="orn-dot"></div>
+                </div>
+                <div class="orn-line"></div>
+            </div>
+
+            <!-- Bio -->
+            <p class="bio" data-i18n="bio"></p>
+
+            <!-- Tags -->
+            <div class="tags" aria-label="Tags">
+                <span class="tag" data-i18n="tag1"></span>
+                <span class="tag" data-i18n="tag2"></span>
+                <span class="tag" data-i18n="tag3"></span>
+                <span class="tag" data-i18n="tag4"></span>
+            </div>
+
+            <!-- Divider -->
+            <div class="orn" aria-hidden="true" style="margin-top: 36px">
+                <div class="orn-line"></div>
+                <div class="orn-center">
+                    <div class="orn-dot"></div>
+                    <div class="orn-diamond"></div>
+                    <div class="orn-dot"></div>
+                </div>
+                <div class="orn-line"></div>
+            </div>
+
+            <!-- Social links -->
+            <div class="socials">
+                <a
+                    class="soc"
+                    href="https://t.me/ho1ysinner"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Telegram"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+                        />
+                    </svg>
+                    <span>telegram</span>
+                </a>
+                <a
+                    class="soc"
+                    href="https://discord.com/users/ho1ysinner"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Discord"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026 13.83 13.83 0 0 0 1.226-1.963.075.075 0 0 0-.041-.104 13.2 13.2 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z"
+                        />
+                    </svg>
+                    <span>discord</span>
+                </a>
+            </div>
+
+            <p class="footer" data-i18n="footer"></p>
+        </main>
+
+        <script>
+            /* ── Translations ── */
+            const T = {
+                ru: {
+                    bio: "Существо промежуточных пространств — между молчанием и словом, между светом и темнотой. Наблюдатель. Собиратель теней. Те, кто понимает — найдут путь сами.",
+                    tag1: "ночное",
+                    tag2: "тихое",
+                    tag3: "настоящее",
+                    tag4: "тёмное",
+                    footer: "∅ тишина тоже язык",
+                },
+                en: {
+                    bio: "A creature of in-between spaces — between silence and sound, between light and darkness. Observer. Collector of shadows. Those who understand will find their way.",
+                    tag1: "nocturnal",
+                    tag2: "quiet",
+                    tag3: "real",
+                    tag4: "dark",
+                    footer: "∅ silence is also a language",
+                },
+                ko: {
+                    bio: "침묵과 말 사이, 빛과 어둠 사이의 존재. 관찰자. 그림자를 모으는 사람. 이해하는 이들은 스스로 길을 찾아올 것이다.",
+                    tag1: "야행성",
+                    tag2: "조용함",
+                    tag3: "진실",
+                    tag4: "어둠",
+                    footer: "∅ 침묵도 언어다",
+                },
+            };
+
+            let lang = "ru";
+
+            function setLang(l) {
+                lang = l;
+                ["ru", "en", "ko"].forEach((x) => {
+                    document
+                        .getElementById("btn-" + x)
+                        .classList.toggle("active", x === l);
+                });
+                document.querySelectorAll("[data-i18n]").forEach((el) => {
+                    const k = el.getAttribute("data-i18n");
+                    if (T[l][k] !== undefined) el.textContent = T[l][k];
+                });
+                document.documentElement.lang = l === "ko" ? "ko" : l;
+            }
+
+            setLang("ru");
+
+            /* Avatar fallback */
+            (function () {
+                const img = document.getElementById("ava-img");
+                const fb = document.getElementById("ava-fb");
+                if (!img.src || img.src.includes("REPLACE_WITH")) {
+                    img.style.display = "none";
+                    fb.style.display = "flex";
+                }
+            })();
+
+            /* ── Custom cursor ── */
+            const ring = document.getElementById("cur-ring");
+            const dot = document.getElementById("cur-dot");
+            let mx = 0,
+                my = 0,
+                rx = 0,
+                ry = 0;
+
+            document.addEventListener("mousemove", (e) => {
+                mx = e.clientX;
+                my = e.clientY;
+                dot.style.left = mx + "px";
+                dot.style.top = my + "px";
+            });
+
+            (function animRing() {
+                rx += (mx - rx) * 0.1;
+                ry += (my - ry) * 0.1;
+                ring.style.left = rx + "px";
+                ring.style.top = ry + "px";
+                requestAnimationFrame(animRing);
+            })();
+
+            document.querySelectorAll("a, button").forEach((el) => {
+                el.addEventListener("mouseenter", () => {
+                    ring.style.width = "46px";
+                    ring.style.height = "46px";
+                    ring.style.opacity = ".35";
+                });
+                el.addEventListener("mouseleave", () => {
+                    ring.style.width = "28px";
+                    ring.style.height = "28px";
+                    ring.style.opacity = ".65";
+                });
+            });
+
+            /* Hide cursor on touch devices */
+            window.addEventListener(
+                "touchstart",
+                () => {
+                    ring.style.display = "none";
+                    dot.style.display = "none";
+                    document
+                        .querySelectorAll("*")
+                        .forEach((el) => (el.style.cursor = ""));
+                },
+                { once: true },
+            );
+        </script>
+
+        <!--
+═══════════════════════════════════════════════════════
+  BIO ВАРИАНТЫ / BIO OPTIONS / 바이오 옵션
+═══════════════════════════════════════════════════════
+
+  ВАРИАНТ A — Загадочный / Mysterious
+  ────────────────────────────────────
+  RU: "Существо без чёткого контура. Я появляюсь там, где темнота
+       становится интересной — и исчезаю, когда свет становится
+       слишком громким."
+  EN: "A creature without clear edges. I appear where darkness
+       gets interesting — and disappear when the light gets too loud."
+  KO: "뚜렷한 윤곽 없는 존재. 어둠이 흥미로워지는 곳에 나타나고,
+       빛이 너무 시끄러워지면 사라진다."
+
+  ВАРИАНТ B — Краткий/дерзкий / Short & edgy
+  ───────────────────────────────────────────
+  RU: "Не принадлежу ни дню, ни ночи. Просто существую
+       в промежутке — и мне там хорошо."
+  EN: "Belong to neither day nor night. Just exist
+       in the space between — and I'm fine with that."
+  KO: "낮에도 밤에도 속하지 않는다. 그 사이 공간에
+       그냥 존재할 뿐 — 그것으로 충분하다."
+
+  ВАРИАНТ C — Поэтический / Poetic
+  ─────────────────────────────────
+  RU: "Меня интересует то, что находится под поверхностью —
+       тихие вещи, острые углы, неудобные истины.
+       Говорю мало. Замечаю много."
+  EN: "Drawn to what lives beneath the surface — quiet things,
+       sharp edges, uncomfortable truths. I say little.
+       I notice everything."
+  KO: "표면 아래 살아있는 것들에 끌린다 — 조용한 것들,
+       날카로운 모서리, 불편한 진실들.
+       말은 적게. 관찰은 많이."
+
+  ЧТОБЫ ИЗМЕНИТЬ: замените текст в объекте T выше.
+  TO CHANGE: replace text in the T object above.
+  변경하려면: 위의 T 객체에서 텍스트를 교체하세요.
+═══════════════════════════════════════════════════════
+-->
+    </body>
+</html>
